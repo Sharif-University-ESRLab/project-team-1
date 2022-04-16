@@ -1,1 +1,1 @@
-Github repo: https://github.com/poojahira/gtsrb-pytorch
+Based on this github repo: https://github.com/poojahira/gtsrb-pytorch
