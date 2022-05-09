@@ -19,9 +19,9 @@ speed_limits = []
 
 def handle_camera(cur_time):
     global speed_limits, signs, lock
-    
+
     lock.acquire()
-    pic_name = 'None'  # replace 'None' with camera-capture-pic function
+    pic_name = 'None'  # replace 'None' with camera-capture-pic function: Yashar
     prediction = sign_detection.predict_pic(pic_name)
     signs.append((cur_time, prediction[0]))
     new_speed_lim = sign_detection.get_speed_limit(speed_limits, signs)

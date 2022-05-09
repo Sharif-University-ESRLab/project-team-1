@@ -3,19 +3,32 @@ from http.server import BaseHTTPRequestHandler
 import json
 
 
-# welcome_html = open('./welcome.html', 'r').read()
-
-
+# todo
 class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/hello':
-            print('GET')
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
-            self.wfile.write(welcome_html.encode())
+        if self.path == '/get-locations':
+            self.__send_locations()
+        elif self.path == '/get-speeds':
+            self.__send_speeds()
+        elif self.path == '/get-signs':
+            self.__send_signs()
+        elif self.path == '/speed-limits':
+            self.__send_speed_limits()
+
+    def __send_locations(self):
+        pass
+
+    def __send_speeds(self):
+        pass
+
+    def __send_signs(self):
+        pass
+
+    def __send_speed_limits(self):
+        pass
 
     def do_POST(self):
+        return
         if self.path == '/sum':
             self.send_response(200)
             self.send_header('Content-type', 'text/html')

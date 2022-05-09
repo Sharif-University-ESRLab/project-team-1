@@ -1,4 +1,3 @@
-from curses import curs_set
 import time
 import serial
 import string
@@ -18,7 +17,7 @@ def init():
     ser = serial.Serial(port, baudrate=9600, timeout=0.5)
 
 
-# todo: change this code
+# todo: change this code: Yashar
 def get_location():
     global ser
     while 1:
@@ -47,12 +46,13 @@ def get_location():
 
 
 def calc_speed(loc1, loc2, interval):
-    # todo: calc speed according to loc1 and loc2. something like abs(loc2 - loc1) / interval
+    # todo: calc speed according to loc1 and loc2. something like dist(loc2, loc1) / interval: Yashar
     pass
 
 
 def get_speed(locations, prev_speed):
     time1, loc1 = locations[-2]
     time2, loc2 = locations[-1]
-    cur_speed = calc_speed(loc1, loc2, time2-time1)*(1-PREV_SPEED_MUL) + prev_speed*PREV_SPEED_MUL
+    cur_speed = prev_speed * PREV_SPEED_MUL + \
+        calc_speed(loc1, loc2, time2-time1) * (1-PREV_SPEED_MUL)
     return cur_speed

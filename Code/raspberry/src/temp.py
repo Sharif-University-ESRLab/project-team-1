@@ -4,10 +4,9 @@ from datetime import date, datetime
 import os
 
 
-t = datetime.now()
-print(t)
-print(datetime.timestamp(t))
+class A:
+    def __f(self):
+        print(2)
 
-t = time()
-print(t)
-print(datetime.fromtimestamp(t))
+a = A()
+a.__f()
