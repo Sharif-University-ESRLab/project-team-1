@@ -28,7 +28,7 @@ class MyHandler(BaseHTTPRequestHandler):
             print(pdict)
             self.wfile.write(json.dumps({'res': num1+num2}).encode())
 
-    # todo: replace it sth built-in?
+    # todo: replace it something built-in?
     def _get_post_params(self, raw_data):
         pdict = dict()
         for pair in raw_data.split('&'):

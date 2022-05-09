@@ -1,14 +1,22 @@
 from threading import Thread
-from inout import handle_sensors
-from veiw import run_server
+from handler import handle_sensors
+from server import run_server
+import sign_detection.main as sign_detection
+import location
+from time import sleep
 
 # Server port
 SERVER_PORT = 8000
 
 
-def main():
+def init():
+    sign_detection.init()
+    # location.init()
+
+
+def create_threads():
     inout_thread = Thread(
-        target=handle_sensors, args=None, name='sensors-thread', daemon=True)
+        target=handle_sensors, args=None, name='modules-thread', daemon=True)
     view_thread = Thread(
         target=run_server, args=(SERVER_PORT,), name='view-thread', daemon=True)
 
@@ -18,6 +26,12 @@ def main():
 
     inout_thread.join()
     view_thread.join()
+
+
+def main():
+    init()
+    print(sign_detection.predict_pic('20limit.png'))
+    # create_threads()
 
 
 if __name__ == '__main__':

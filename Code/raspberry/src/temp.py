@@ -1,16 +1,13 @@
 from threading import Thread
-from time import sleep
-from datetime import datetime
+from time import sleep, time
+from datetime import date, datetime
+import os
 
 
-def f():
-    while True:
-        sleep(1)
-        print('hi')
+t = datetime.now()
+print(t)
+print(datetime.timestamp(t))
 
-
-# t = Thread(target=f, daemon=False)
-# t.start()
-# t.join()
-
-print(datetime.now())
+t = time()
+print(t)
+print(datetime.fromtimestamp(t))
