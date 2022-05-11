@@ -1,5 +1,5 @@
 from threading import Thread
-from handler import handle_sensors
+from handler import handle_gps, handle_sensors
 from server import run_server
 import sign_detection.main as sign_detection
 import location
@@ -8,10 +8,9 @@ from time import sleep
 # Server port
 SERVER_PORT = 8000
 
-
 def init():
     sign_detection.init()
-    # location.init()
+    location.init()
 
 
 def create_threads():
@@ -31,6 +30,7 @@ def create_threads():
 def main():
     init()
     print(sign_detection.predict_pic('20limit.png'))
+    handle_sensors()
     # create_threads()
 
 

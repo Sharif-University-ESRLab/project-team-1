@@ -2,7 +2,6 @@ from time import sleep
 from time import time as get_time
 import threading
 
-import sign_detection.main as sign_detection
 import location
 
 # Periods are in second
@@ -55,8 +54,8 @@ def handle_sensors():
         handle_gps(start)
         if start - last_camera_clk > CAMERA_PERIOD:
             last_camera_clk = start
-            handle_camera(start)
-        handle_buzzer(start)
+            # handle_camera(start)
+        # handle_buzzer(start)
         
         now = get_time()
         sleep(CLK_PERIOD - (now - start))
