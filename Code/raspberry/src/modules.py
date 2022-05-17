@@ -2,7 +2,7 @@ from time import sleep
 from time import time as get_time
 import threading
 
-import sign_detection
+import sign_detection.main as sign_detection
 import location
 
 # Periods are in second
@@ -23,10 +23,11 @@ def handle_camera(cur_time):
     lock.acquire()
     pic_name = 'None'  # replace 'None' with camera-capture-pic function: Yashar
     prediction = sign_detection.predict_pic(pic_name)
-    signs.append((cur_time, prediction[0]))
+    if prediction != None:
+        signs.append((cur_time, prediction[0]))
     new_speed_lim = sign_detection.get_speed_limit(speed_limits, signs)
-    if new_speed_lim != None:
-        speed_limits.append((cur_time, new_speed_lim))
+    # if new_speed_lim != None:
+    speed_limits.append((cur_time, new_speed_lim))
     lock.release()
 
 

@@ -75,6 +75,8 @@ def calc_speed(loc1, loc2, interval):
 
 
 def get_speed(locations, prev_speed):
+    if len(locations) < 2:
+        return 0
     time1, loc1 = locations[-2]
     time2, loc2 = locations[-1]
     cur_speed = prev_speed * PREV_SPEED_MUL + \

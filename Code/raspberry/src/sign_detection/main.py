@@ -37,6 +37,7 @@ def init():
     set_labels()
 
 
+# todo: add griding. return None if prob of a sign is extremely low.
 def predict_pic(pic_name):
     global model, labels
 
@@ -62,8 +63,14 @@ def predict_pic(pic_name):
 
 
 def get_speed_limit(speed_limits, signs):
-    last_speed_lim = speed_limits[-1][1]
-    last_sign = signs[-1][1]
+    if len(speed_limits) > 1:
+        last_speed_lim = speed_limits[-1][1]
+    else:
+        last_speed_lim = 999999
+    if len(signs) > 1:
+        last_sign = signs[-1][1]
+    else:
+        last_sign = None
     
     # Check labels.csv to see the numbers
     if last_sign == 6:
@@ -87,5 +94,5 @@ def get_speed_limit(speed_limits, signs):
     elif last_sign == 8:
         return min(120, last_speed_lim)
     else:
-        return None
+        return last_speed_lim
 
