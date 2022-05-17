@@ -2,11 +2,7 @@ from threading import Thread
 from time import sleep, time
 from datetime import date, datetime
 import os
+import json
 
-
-class A:
-    def __f(self):
-        print(2)
-
-a = A()
-a.__f()
+x = [1, 2, 3]
+print(json.dumps(x))

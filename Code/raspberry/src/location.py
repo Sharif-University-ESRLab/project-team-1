@@ -21,7 +21,6 @@ def init():
 
 
 def formatDegreesMinutes(coordinates, digits):
-
     parts = coordinates.split(".")
 
     if (len(parts) != 2):

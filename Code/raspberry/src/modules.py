@@ -2,6 +2,7 @@ from time import sleep
 from time import time as get_time
 import threading
 
+import sign_detection
 import location
 
 # Periods are in second
@@ -46,7 +47,7 @@ def handle_buzzer(cur_time):
     pass
 
 
-def handle_sensors():
+def handle_modules():
     last_camera_clk = 0
     while True:
         start = get_time()

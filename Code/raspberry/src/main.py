@@ -1,9 +1,8 @@
 from threading import Thread
-from handler import handle_gps, handle_sensors
+from modules import handle_gps, handle_modules
 from server import run_server
 import sign_detection.main as sign_detection
 import location
-from time import sleep
 
 # Server port
 SERVER_PORT = 8000
@@ -14,23 +13,23 @@ def init():
 
 
 def create_threads():
-    inout_thread = Thread(
-        target=handle_sensors, args=None, name='modules-thread', daemon=True)
-    view_thread = Thread(
-        target=run_server, args=(SERVER_PORT,), name='view-thread', daemon=True)
+    modules_thread = Thread(
+        target=handle_modules, args=None, name='modules-thread', daemon=True)
+    server_thread = Thread(
+        target=run_server, args=(SERVER_PORT,), name='server-thread', daemon=True)
 
     # todo: wait for threads' initializations?
-    inout_thread.start()
-    view_thread.start()
+    modules_thread.start()
+    server_thread.start()
 
-    inout_thread.join()
-    view_thread.join()
+    modules_thread.join()
+    server_thread.join()
 
 
 def main():
     init()
     print(sign_detection.predict_pic('20limit.png'))
-    handle_sensors()
+    # handle_modules()
     # create_threads()
 
 
