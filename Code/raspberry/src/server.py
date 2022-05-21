@@ -28,7 +28,10 @@ class MyHandler(BaseHTTPRequestHandler):
     def __send_response(self, arr):
         timestamp = int(self.params['timestamp'][0])
         data_lock.acquire()
-        index = self.__find_timestamp_index(timestamp, arr)
+        if timestamp == -1:
+            index = -1
+        else:
+            index = self.__find_timestamp_index(timestamp, arr)
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
