@@ -9,6 +9,7 @@ from modules import locations, speeds, signs, speed_limits
 
 # HTTP request handler class
 class MyHandler(BaseHTTPRequestHandler):
+    # Main request handler function
     def do_GET(self):
         self.__parse_get_params()
         if self.path.startswith('/get-locations'):
@@ -22,15 +23,17 @@ class MyHandler(BaseHTTPRequestHandler):
         else:
             self.__send_400_response()
 
+    # Parses GET request parameters.
     def __parse_get_params(self):
         self.params = parse_qs(urlparse(self.path).query)
 
+    # Sends response to android app.
     def __send_response(self, arr):
         timestamp = int(self.params['timestamp'][0])
         data_lock.acquire()
-        if timestamp == -1:
+        if timestamp == -1: # First request from android app will have TIMESTAMP equal to -1.
             index = -1
-        else:
+        else:   # Other requests will set TIMESTAMP equal to the timestamp of the last cell they have gotten.
             index = self.__find_timestamp_index(timestamp, arr)
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
@@ -38,13 +41,16 @@ class MyHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(arr[index+1:len(arr)]).encode())
         data_lock.release()
 
+    # Sends 400 bad request. It's used when url path is wrong.
     def __send_400_response(self):
         self.send_response(400)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
-    # Returns the index of the first cell with the timestamp greater or equal to TIMESTAMP in ARR
+    # Returns the index of the first cell with the timestamp greater or equal to TIMESTAMP in ARR.
+    # Uses binary search algorithm for better performance.
     def __find_timestamp_index(timestamp: int, arr: [tuple]):
+        # Will find TIMESTAMP in ARR using bin search.
         def bin_search(start, end):
             if start == end:
                 return start
@@ -57,34 +63,8 @@ class MyHandler(BaseHTTPRequestHandler):
 
         return bin_search(0, len(arr)-1)
 
-    # todo: delete?
-    def do_POST(self):
-        return
-        if self.path == '/sum':
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            data = self.rfile.read(
-                int(self.headers['Content-length'])).decode('utf-8')
-            pdict = self._get_post_params(data)
-            num1 = int(pdict['num1'])
-            num2 = int(pdict['num2'])
-            print(pdict)
-            self.wfile.write(json.dumps({'res': num1+num2}).encode())
 
-    # todo: replace it something built-in?
-    def __get_post_params(self, raw_data):
-        pdict = dict()
-        for pair in raw_data.split('&'):
-            index = pair.find('=')
-            pdict[pair[0:index]] = pair[index+1:len(pair)]
-        return pdict
-
-    # todo: delete?
-    def log_message(self, format, *args):
-        pass
-
-
+# Start server on port number PORT
 def run_server(port):
     httpd = socketserver.ThreadingTCPServer(("", port), MyHandler)
     print('Server running ...')
