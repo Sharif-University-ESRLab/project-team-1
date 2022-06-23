@@ -10,16 +10,17 @@ PREV_SPEED_MUL = 0.7
 
 SERIAL_PORT = "/dev/serial0"
 
-
 gps = None
 
 
+# Initializes gps.
 def init():
     global gps
     print("GPS is started!")
     gps = serial.Serial(SERIAL_PORT, baudrate=9600, timeout=0.5)
 
 
+# Formats gps information.
 def formatDegreesMinutes(coordinates, digits):
     parts = coordinates.split(".")
 
@@ -37,6 +38,7 @@ def formatDegreesMinutes(coordinates, digits):
     return degrees + "." + minutes
 
 
+# Reads a location from gps stream.
 def get_location():
     global gps
     while True:
@@ -54,6 +56,7 @@ def get_location():
                 return longitude, latitude
 
 
+# Calculates destination between LOC1 and LOC2.
 def calc_dist(loc1, loc2):
     loc1, loc2 = loc1 * pi / 180, loc2 * pi / 180
     e_rad = 6378100
@@ -66,6 +69,7 @@ def calc_dist(loc1, loc2):
     return e_rad * theta
 
 
+# Calculates speed for a car travelling from LOC1 to LOC2 in INTERVAL seconds.
 def calc_speed(loc1, loc2, interval):
     dist = calc_dist(loc1, loc2)
     mps_vel = dist / interval
@@ -74,6 +78,7 @@ def calc_speed(loc1, loc2, interval):
     return int(kph_vel)
 
 
+# Gets speed based on locations data and previous speed.
 def get_speed(locations, prev_speed):
     if len(locations) < 2:
         return 0

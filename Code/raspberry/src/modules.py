@@ -9,6 +9,7 @@ import location
 CLK_PERIOD = 0.1
 CAMERA_PERIOD = 1.0
 
+# This lock is used for synchronization
 lock = threading.Lock()
 locations = []
 speeds = []
@@ -17,23 +18,23 @@ signs = []
 speed_limits = []
 
 
+# Handles camera module.
 def handle_camera(cur_time):
     global speed_limits, signs, lock
 
     lock.acquire()
-    pic_name = 'None'  # replace 'None' with camera-capture-pic function: Yashar
-    prediction = sign_detection.predict_pic(pic_name)
+    prediction = sign_detection.get_random_sign(0.2)
     if prediction != None:
         signs.append((cur_time, prediction[0]))
     new_speed_lim = sign_detection.get_speed_limit(speed_limits, signs)
-    # if new_speed_lim != None:
     speed_limits.append((cur_time, new_speed_lim))
     lock.release()
 
 
+# Handles gps module.
 def handle_gps(cur_time):
     global locations, speeds, prev_speed, lock
-    
+
     lock.acquire()
     loc = location.get_location()
     locations.append((cur_time, loc))
@@ -43,11 +44,7 @@ def handle_gps(cur_time):
     lock.release()
 
 
-# todo: needed?
-def handle_buzzer(cur_time):
-    pass
-
-
+# Handles modules and calls their functions periodically.
 def handle_modules():
     last_camera_clk = 0
     while True:
@@ -57,7 +54,6 @@ def handle_modules():
         if start - last_camera_clk > CAMERA_PERIOD:
             last_camera_clk = start
             # handle_camera(start)
-        # handle_buzzer(start)
-        
+
         now = get_time()
         sleep(CLK_PERIOD - (now - start))
