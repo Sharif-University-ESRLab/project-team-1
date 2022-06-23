@@ -9,11 +9,7 @@ import location
 CLK_PERIOD = 0.1
 CAMERA_PERIOD = 1.0
 
-<< << << < HEAD
-# This lock is used for synchronization
-== == == =
 # Used for synchronization when threads access below variables.
->>>>>> > e5a91d13017972a6dff1ec8d3a069055a1a75824
 lock = threading.Lock()
 
 # These are used to store data as time passes.
