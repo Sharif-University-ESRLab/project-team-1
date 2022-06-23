@@ -9,13 +9,19 @@ import location
 CLK_PERIOD = 0.1
 CAMERA_PERIOD = 1.0
 
+<<<<<<< HEAD
 # This lock is used for synchronization
+=======
+# Used for synchronization when threads access below variables.
+>>>>>>> e5a91d13017972a6dff1ec8d3a069055a1a75824
 lock = threading.Lock()
-locations = []
-speeds = []
-prev_speed = 0
-signs = []
-speed_limits = []
+
+# These are used to store data as time passes.
+locations = []  # Locations of the car in different timestamps
+speeds = [] # Speeds of the car in different timestamps
+prev_speed = 0  # Last calculated speed
+signs = [] # Traffic signs detected in different timestamps
+speed_limits = []   # Speed limits in different timestamps
 
 
 # Handles camera module.
@@ -31,7 +37,11 @@ def handle_camera(cur_time):
     lock.release()
 
 
+<<<<<<< HEAD
 # Handles gps module.
+=======
+# Handle GPS module and do the jobs related to the car's location and speed
+>>>>>>> e5a91d13017972a6dff1ec8d3a069055a1a75824
 def handle_gps(cur_time):
     global locations, speeds, prev_speed, lock
 
@@ -44,7 +54,11 @@ def handle_gps(cur_time):
     lock.release()
 
 
+<<<<<<< HEAD
 # Handles modules and calls their functions periodically.
+=======
+# Main module handling function which calls other functions periodically
+>>>>>>> e5a91d13017972a6dff1ec8d3a069055a1a75824
 def handle_modules():
     last_camera_clk = 0
     while True:

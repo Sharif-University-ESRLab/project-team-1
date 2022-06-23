@@ -9,8 +9,12 @@ from modules import locations, speeds, signs, speed_limits
 
 # HTTP request handler class
 class MyHandler(BaseHTTPRequestHandler):
+<<<<<<< HEAD
     # Receives all Http GET requests and passes them to proper functions.
     # Sends 400 response if request url was not correct.
+=======
+    # Main request handler function
+>>>>>>> e5a91d13017972a6dff1ec8d3a069055a1a75824
     def do_GET(self):
         self.__parse_get_params()
         if self.path.startswith('/get-locations'):
@@ -24,17 +28,25 @@ class MyHandler(BaseHTTPRequestHandler):
         else:
             self.__send_400_response()
 
+<<<<<<< HEAD
     # Extracts GET params from request.
     def __parse_get_params(self):
         self.params = parse_qs(urlparse(self.path).query)
 
     # Sends response back to android app.
+=======
+    # Parses GET request parameters.
+    def __parse_get_params(self):
+        self.params = parse_qs(urlparse(self.path).query)
+
+    # Sends response to android app.
+>>>>>>> e5a91d13017972a6dff1ec8d3a069055a1a75824
     def __send_response(self, arr):
         timestamp = int(self.params['timestamp'][0])
         data_lock.acquire()
-        if timestamp == -1:
+        if timestamp == -1: # First request from android app will have TIMESTAMP equal to -1.
             index = -1
-        else:
+        else:   # Other requests will set TIMESTAMP equal to the timestamp of the last cell they have gotten.
             index = self.__find_timestamp_index(timestamp, arr)
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
@@ -42,14 +54,20 @@ class MyHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(arr[index+1:len(arr)]).encode())
         data_lock.release()
 
+<<<<<<< HEAD
     # Sends 400 (bad request) response to android app.
+=======
+    # Sends 400 bad request. It's used when url path is wrong.
+>>>>>>> e5a91d13017972a6dff1ec8d3a069055a1a75824
     def __send_400_response(self):
         self.send_response(400)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
-    # Returns the index of the first cell with the timestamp greater or equal to TIMESTAMP in ARR
+    # Returns the index of the first cell with the timestamp greater or equal to TIMESTAMP in ARR.
+    # Uses binary search algorithm for better performance.
     def __find_timestamp_index(timestamp: int, arr: [tuple]):
+        # Will find TIMESTAMP in ARR using bin search.
         def bin_search(start, end):
             if start == end:
                 return start
@@ -63,6 +81,7 @@ class MyHandler(BaseHTTPRequestHandler):
         return bin_search(0, len(arr)-1)
 
 
+# Start server on port number PORT
 def run_server(port):
     httpd = socketserver.ThreadingTCPServer(("", port), MyHandler)
     print('Server running ...')
