@@ -4,7 +4,7 @@ import json
 from urllib.parse import urlparse, parse_qs
 
 from modules import lock as data_lock
-from modules import locations, speeds, signs, speed_limits
+from modules import locations, distances, signs, speed_limits
 
 
 # HTTP request handler class
@@ -16,7 +16,7 @@ class MyHandler(BaseHTTPRequestHandler):
         if self.path.startswith('/get-locations'):
             self.__send_response(locations)
         elif self.path.startswith('/get-speeds'):
-            self.__send_response(speeds)
+            self.__send_response(distances)
         elif self.path.startswith('/get-signs'):
             self.__send_response(signs)
         elif self.path.startswith('/speed-limits'):

@@ -69,21 +69,11 @@ def calc_dist(loc1, loc2):
     return e_rad * theta
 
 
-# Calculates speed for a car travelling from LOC1 to LOC2 in INTERVAL seconds.
-def calc_speed(loc1, loc2, interval):
-    dist = calc_dist(loc1, loc2)
-    mps_vel = dist / interval
-    print(mps_vel + ' m/s')
-    kph_vel = mps_vel * 60 / 1000
-    return int(kph_vel)
-
-
 # Gets speed based on locations data and previous speed.
-def get_speed(locations, prev_speed):
+def get_dist(locations, prev_speed):
     if len(locations) < 2:
         return 0
-    time1, loc1 = locations[-2]
-    time2, loc2 = locations[-1]
-    cur_speed = prev_speed * PREV_SPEED_MUL + \
-        calc_speed(loc1, loc2, time2-time1) * (1-PREV_SPEED_MUL)
-    return cur_speed
+    loc1 = locations[-2]
+    loc2 = locations[-1]
+    cur_dist = calc_dist(loc1, loc2)
+    return cur_dist

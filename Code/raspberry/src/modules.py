@@ -8,14 +8,17 @@ import location
 # Periods are in second
 CLK_PERIOD = 0.1
 CAMERA_PERIOD = 1.0
+GPS_PERIOD = 1.0
+
+REOCRD_FILE = "./trajectory_history_30"
 
 # Used for synchronization when threads access below variables.
 lock = threading.Lock()
 
 # These are used to store data as time passes.
 locations = []  # Locations of the car in different timestamps
-speeds = []  # Speeds of the car in different timestamps
-prev_speed = 0  # Last calculated speed
+distances = []  # Speeds of the car in different timestamps
+prev_dist = 0  # Last calculated speed
 signs = []  # Traffic signs detected in different timestamps
 speed_limits = []   # Speed limits in different timestamps
 
@@ -34,15 +37,18 @@ def handle_camera(cur_time):
 
 
 # Handle GPS module and do the jobs related to the car's location and speed
-def handle_gps(cur_time):
-    global locations, speeds, prev_speed, lock
+def handle_gps():
+    global locations, distances, prev_dist, lock, speed_limits
 
     lock.acquire()
     loc = location.get_location()
-    locations.append((cur_time, loc))
-    cur_speed = location.get_speed(locations, prev_speed)
-    speeds.append((cur_time, cur_speed))
-    prev_speed = cur_speed
+    locations.append(loc)
+    cur_dist = location.get_dist(locations, prev_dist)
+    distances.append(cur_dist)
+    trajectory_histroy = open(REOCRD_FILE, "w")
+    trajectory_histroy.write(f"{'{'}\"distance\":{cur_dist}, \"limit\":{speed_limits[-1]}{'}'}\n")
+    prev_dist = cur_dist
+    trajectory_histroy.close()
     lock.release()
 
 
@@ -52,10 +58,11 @@ def handle_modules():
     while True:
         start = get_time()
 
-        handle_gps(start)
+        if get_time() - start > GPS_PERIOD:
+            handle_gps()
         if start - last_camera_clk > CAMERA_PERIOD:
             last_camera_clk = start
-            # handle_camera(start)
+            handle_camera(start)
 
         now = get_time()
         sleep(CLK_PERIOD - (now - start))
