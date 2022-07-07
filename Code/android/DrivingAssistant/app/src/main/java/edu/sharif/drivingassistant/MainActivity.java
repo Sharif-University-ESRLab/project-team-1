@@ -2,67 +2,74 @@ package edu.sharif.drivingassistant;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 
-import com.google.android.material.snackbar.Snackbar;
-
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.util.Log;
-import android.view.View;
-
 import androidx.core.app.NotificationCompat;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
+import androidx.core.app.NotificationManagerCompat;
 
-import edu.sharif.drivingassistant.databinding.ActivityMainBinding;
+import edu.sharif.drivingassistant.clients.ApiService;
+import edu.sharif.drivingassistant.db.dao.TrajectoryRepository;
+import edu.sharif.drivingassistant.db.entity.TrajectoryRecord;
+import edu.sharif.drivingassistant.model.exception.ApiConnectivityException;
+import edu.sharif.drivingassistant.model.trajectory.TrajectoryDTO;
+import edu.sharif.drivingassistant.services.ModelConverter;
+import edu.sharif.drivingassistant.services.ThreadPoolService;
+import edu.sharif.drivingassistant.ui.ChartActivity;
 
-import android.view.Menu;
-import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.TextView;
 
-import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 
 public class MainActivity extends AppCompatActivity {
 
-    private AppBarConfiguration appBarConfiguration;
-    private ActivityMainBinding binding;
     private static final String CHANNEL_ID = "DA_CHANNEL";
+    private static final Integer NOTIF_ID = 1;
+    private ApiService apiService;
+    private TrajectoryRepository trajectoryRepository;
+    private ModelConverter modelConverter;
+    private ThreadPoolService threadPoolService;
+    private Timer timer = new Timer();
+    private TimerTask timerTask;
+    private NotificationManagerCompat notificationManagerCompat;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        setContentView(R.layout.activity_main);
         Bundle args = new Bundle();
         args.putInt("notifId", 0);
         args.putString("channelId", CHANNEL_ID);
-        Log.d("DALOG", String.valueOf(R.id.FirstFragment));
-        Log.d("DALOG", String.valueOf(R.id.action_FirstFragment_to_SecondFragment));
-        Log.d("DALOG", "HERE");
-        FirstFragment firstFragment = (FirstFragment) Objects.requireNonNull(
-                getSupportFragmentManager().findFragmentById(R.id.FirstFragment));
-        firstFragment.setArguments(args);
-
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
-        setSupportActionBar(binding.toolbar);
-
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-
-        binding.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        apiService = ApiService.getInstance(getResources());
+        trajectoryRepository = TrajectoryRepository.getInstance(getBaseContext());
+        modelConverter = ModelConverter.getInstance();
+        threadPoolService = ThreadPoolService.getInstance();
         createNotificationChannel();
+        Button historyButton = findViewById(R.id.chart_button);
+        historyButton.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, ChartActivity.class);
+            startActivity(intent);
+        });
+        refreshSpeedSchedule();
+    }
+
+    private TrajectoryDTO fetch_trajectory() {
+        try {
+            TrajectoryDTO trajectoryDTO = apiService.getTrajectoryInfo();
+            TrajectoryRecord record = modelConverter.getTrajectoryEntity(trajectoryDTO);
+            trajectoryRepository.updateTrajectories(record);
+            return trajectoryDTO;
+        } catch (ApiConnectivityException e) {
+            return TrajectoryDTO.getFailed();
+        }
     }
 
     private void createNotificationChannel() {
@@ -73,34 +80,59 @@ public class MainActivity extends AppCompatActivity {
         channel.setDescription(channelDescription);
         NotificationManager notificationManager = getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(channel);
+        notificationManagerCompat = NotificationManagerCompat.from(this);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+    private void refreshSpeedSchedule() {
+        timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                CompletableFuture<TrajectoryDTO> speedFuture = new CompletableFuture();
+                threadPoolService.execute(() -> {
+                    TrajectoryDTO trajectory = fetch_trajectory();
+                    speedFuture.complete(trajectory);
+                });
+                TrajectoryDTO trajectory = speedFuture.join();
+                runOnUiThread(() -> {
+                    TextView speed = findViewById(R.id.speed);
+                    TextView speedInfo = findViewById(R.id.speed_info);
+                    TextView speedLimit = findViewById(R.id.limit);
+                    String averageSpeed = trajectory.getAverageSpeed();
+                    String limit = trajectory.getLimit();
+                    speed.setText(averageSpeed);
+                    speedLimit.setText(limit);
+                    if (trajectory.equals(TrajectoryDTO.getFailed())) {
+                        speedInfo.setTextColor(Color.GRAY);
+                    } else {
+                        alertDriver(Float.parseFloat(averageSpeed), Integer.parseInt(limit),
+                                speedInfo);
+                    }
+                });
+            }
+        };
+        timer.schedule(timerTask, 1000, 1000);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+    private void alertDriver(float speed, int limit, TextView speedInfo) {
+        String notifText;
+        if (speed > limit) {
+            speedInfo.setTextColor(Color.RED);
+            notifText = "Exceeding speed: " + speed + " while the limit is " + limit;
+        } else {
+            speedInfo.setTextColor(Color.GRAY);
+            notifText = "Speed: " + speed + " limit: " + limit;
         }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        return NavigationUI.navigateUp(navController, appBarConfiguration)
-                || super.onSupportNavigateUp();
+        Intent intent = new Intent(this, MainActivity.class);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addNextIntentWithParentStack(intent);
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.notification_icon)
+                .setContentTitle("Speed notification")
+                .setContentText(notifText)
+                .setContentIntent(resultPendingIntent)
+                .setAutoCancel(false);
+        notificationManagerCompat.notify(NOTIF_ID, builder.build());
     }
 }

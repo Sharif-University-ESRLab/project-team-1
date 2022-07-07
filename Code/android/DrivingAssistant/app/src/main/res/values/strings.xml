@@ -9,4 +9,12 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="info_api">http://10.0.2.2:5000/trajectory</string>
+    <string name="offset_key">offset</string>
+    <string name="weekly_candles">WEEKLY CANDLES</string>
+    <string name="monthly_candles">MONTHLY CANDLES</string>
+    <string name="distance">Distance</string>
+    <string name="average_speed">Average speed</string>
+    <string name="driving_duration">Driving duration</string>
+    <string name="history_button">Driving history</string>
 </resources>
